@@ -1,7 +1,12 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge'
 import HealthScore from '@/components/HealthScore'
 import { prisma } from '@/lib/db'
+
+export const metadata: Metadata = {
+  title: 'Dashboard - HiveMind',
+}
 
 async function getStats() {
   const [

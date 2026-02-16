@@ -1,4 +1,9 @@
+import type { Metadata } from 'next'
 import { prisma } from '@/lib/db'
+
+export const metadata: Metadata = {
+  title: 'Audit Logs - HiveMind',
+}
 
 async function getLogs() {
   return await prisma.auditLog.findMany({

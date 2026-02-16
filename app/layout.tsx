@@ -3,7 +3,10 @@ import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
-  title: "HiveMind - AI Company Dashboard",
+  title: {
+    default: "HiveMind - AI Company Dashboard",
+    template: "%s",
+  },
   description: "Autonomous AI agent company dashboard",
   manifest: "/manifest.json",
   appleWebApp: {

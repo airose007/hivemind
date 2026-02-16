@@ -1,6 +1,11 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import StatusBadge from '@/components/StatusBadge'
 import { prisma } from '@/lib/db'
+
+export const metadata: Metadata = {
+  title: 'Tasks - HiveMind',
+}
 
 async function getTasks() {
   return await prisma.task.findMany({
