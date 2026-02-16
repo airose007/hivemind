@@ -60,6 +60,8 @@ export default function LoginPage() {
                 className="w-full px-4 py-2 bg-gray-950 border border-gray-800 rounded-lg focus:outline-none focus:border-blue-600 transition-colors"
                 required
                 autoFocus
+                autoComplete="username"
+                aria-required="true"
               />
             </div>
 
@@ -74,6 +76,8 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 bg-gray-950 border border-gray-800 rounded-lg focus:outline-none focus:border-blue-600 transition-colors"
                 required
+                autoComplete="current-password"
+                aria-required="true"
               />
             </div>
 

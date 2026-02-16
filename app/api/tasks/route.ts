@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/apiAuth'
+import { createTaskSchema, formatZodError } from '@/lib/validations'
 
 export async function GET(request: Request) {
   const auth = await requireAuth()
@@ -47,6 +48,15 @@ export async function POST(request: Request) {
   if (!auth.authenticated) return auth.response
   try {
     const body = await request.json()
+    const parsed = createTaskSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: formatZodError(parsed.error) },
+        { status: 400 }
+      )
+    }
+
     const {
       title,
       description,
@@ -56,14 +66,7 @@ export async function POST(request: Request) {
       priority,
       payload,
       parentTaskId,
-    } = body
-
-    if (!title) {
-      return NextResponse.json(
-        { error: 'Title is required' },
-        { status: 400 }
-      )
-    }
+    } = parsed.data
 
     const task = await prisma.task.create({
       data: {
@@ -72,8 +75,8 @@ export async function POST(request: Request) {
         departmentId,
         assignedToId,
         createdById,
-        priority: priority || 'normal',
-        payload: payload || {},
+        priority,
+        payload,
         parentTaskId,
       },
       include: {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/apiAuth'
+import { createDepartmentSchema, formatZodError } from '@/lib/validations'
 
 export async function GET() {
   const auth = await requireAuth()
@@ -44,21 +45,23 @@ export async function POST(request: Request) {
   if (!auth.authenticated) return auth.response
   try {
     const body = await request.json()
-    const { name, description, icon, isCore } = body
+    const parsed = createDepartmentSchema.safeParse(body)
 
-    if (!name) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Name is required' },
+        { error: formatZodError(parsed.error) },
         { status: 400 }
       )
     }
+
+    const { name, description, icon } = parsed.data
 
     const department = await prisma.department.create({
       data: {
         name,
         description,
         icon,
-        isCore: isCore || false,
+        isCore: body.isCore || false,
       },
     })
 

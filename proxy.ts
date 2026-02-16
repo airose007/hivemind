@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { getIronSession } from 'iron-session'
 import { SessionData, sessionOptions } from './lib/session'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next()
   const session = await getIronSession<SessionData>(
     request,
@@ -28,5 +28,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|icons/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|robots\\.txt|icons/).*)'],
 }

@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/db'
 import { getSession } from '@/lib/auth'
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from '@/lib/rateLimit'
+import { loginSchema, formatZodError } from '@/lib/validations'
 
 export async function POST(request: Request) {
   try {
@@ -22,14 +23,17 @@ export async function POST(request: Request) {
       )
     }
 
-    const { username, password } = await request.json()
+    const body = await request.json()
+    const parsed = loginSchema.safeParse(body)
 
-    if (!username || !password) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Username and password required' },
+        { error: formatZodError(parsed.error) },
         { status: 400 }
       )
     }
+
+    const { username, password } = parsed.data
 
     const user = await prisma.user.findUnique({
       where: { username },

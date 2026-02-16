@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { requireAuth } from '@/lib/apiAuth'
+import { createAgentSchema, formatZodError } from '@/lib/validations'
 
 export async function GET() {
   const auth = await requireAuth()
@@ -41,22 +42,24 @@ export async function POST(request: Request) {
   if (!auth.authenticated) return auth.response
   try {
     const body = await request.json()
-    const { name, role, departmentId, model, config } = body
+    const parsed = createAgentSchema.safeParse(body)
 
-    if (!name || !role) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Name and role are required' },
+        { error: formatZodError(parsed.error) },
         { status: 400 }
       )
     }
+
+    const { name, role, departmentId, model, config } = parsed.data
 
     const agent = await prisma.agent.create({
       data: {
         name,
         role,
         departmentId,
-        model: model || 'sonnet',
-        config: config || {},
+        model,
+        config,
       },
       include: {
         department: true,
