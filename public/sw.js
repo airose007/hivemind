@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hivemind-v1';
+const CACHE_NAME = 'hivemind-v2';
 const APP_SHELL = [
   '/',
   '/manifest.json',
