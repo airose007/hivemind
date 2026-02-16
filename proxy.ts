@@ -11,10 +11,11 @@ export async function proxy(request: NextRequest) {
     sessionOptions
   )
 
-  // Allow access to login page and auth API routes
+  // Allow access to login page, auth API routes, and health ping
   if (
     request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/api/auth')
+    request.nextUrl.pathname.startsWith('/api/auth') ||
+    request.nextUrl.pathname === '/api/ping'
   ) {
     return response
   }
