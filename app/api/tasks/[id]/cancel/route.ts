@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/apiAuth'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
+  const { id } = await params
   try {
     const task = await prisma.task.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: 'canceled',
         finishedAt: new Date(),

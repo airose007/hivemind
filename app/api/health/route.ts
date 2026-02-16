@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/apiAuth'
 
 export async function GET() {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
   try {
     const [agentCount, activeAgents, departments, activeTasks] = await Promise.all([
       prisma.agent.count(),

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { exec } from 'child_process'
+import { requireAuth } from '@/lib/apiAuth'
 
 export async function POST() {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
   try {
     // Restart OpenClaw gateway (non-blocking)
     exec('openclaw gateway restart', (error) => {

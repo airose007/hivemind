@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { requireAuth } from '@/lib/apiAuth'
 
 const CONFIG_PATH = process.env.OPENCLAW_CONFIG || '/home/openclaw/.openclaw/openclaw.json'
 
 export async function GET() {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
   try {
     const content = await fs.readFile(CONFIG_PATH, 'utf-8')
     return NextResponse.json({ content })
@@ -18,6 +21,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
   try {
     const { content } = await request.json()
 

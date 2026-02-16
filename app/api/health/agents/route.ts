@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/apiAuth'
 
 export async function GET() {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
   try {
     const agents = await prisma.agent.findMany({
       include: {

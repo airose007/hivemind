@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
+import { requireAuth } from '@/lib/apiAuth'
 
 const WORKSPACE_PATH = process.env.OPENCLAW_WORKSPACE || '/home/openclaw/.openclaw/workspace'
 
@@ -8,17 +9,20 @@ const ALLOWED_FILES = ['SOUL.md', 'AGENTS.md', 'TOOLS.md', 'HEARTBEAT.md']
 
 export async function GET(
   request: Request,
-  { params }: { params: { name: string } }
+  { params }: { params: Promise<{ name: string }> }
 ) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
+  const { name } = await params
   try {
-    if (!ALLOWED_FILES.includes(params.name)) {
+    if (!ALLOWED_FILES.includes(name)) {
       return NextResponse.json(
         { error: 'File not allowed' },
         { status: 403 }
       )
     }
 
-    const filePath = path.join(WORKSPACE_PATH, params.name)
+    const filePath = path.join(WORKSPACE_PATH, name)
     
     try {
       const content = await fs.readFile(filePath, 'utf-8')
@@ -40,10 +44,13 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { name: string } }
+  { params }: { params: Promise<{ name: string }> }
 ) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
+  const { name } = await params
   try {
-    if (!ALLOWED_FILES.includes(params.name)) {
+    if (!ALLOWED_FILES.includes(name)) {
       return NextResponse.json(
         { error: 'File not allowed' },
         { status: 403 }
@@ -59,7 +66,7 @@ export async function POST(
       )
     }
 
-    const filePath = path.join(WORKSPACE_PATH, params.name)
+    const filePath = path.join(WORKSPACE_PATH, name)
     await fs.writeFile(filePath, content, 'utf-8')
 
     return NextResponse.json({ success: true })

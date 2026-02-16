@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { requireAuth } from '@/lib/apiAuth'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
+  const { id } = await params
   try {
     const agent = await prisma.agent.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         department: true,
         tasks: {
@@ -47,8 +51,11 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
+  const { id } = await params
   try {
     const body = await request.json()
     const {
@@ -65,7 +72,7 @@ export async function PATCH(
     } = body
 
     const agent = await prisma.agent.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(role && { role }),
@@ -101,11 +108,14 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
+  const { id } = await params
   try {
     await prisma.agent.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     return NextResponse.json({ success: true })

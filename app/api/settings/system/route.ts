@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server'
 import os from 'os'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { requireAuth } from '@/lib/apiAuth'
 
 const execAsync = promisify(exec)
 
 export async function GET() {
+  const auth = await requireAuth()
+  if (!auth.authenticated) return auth.response
   try {
     const uptime = os.uptime()
     const totalMem = os.totalmem()
