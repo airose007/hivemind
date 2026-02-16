@@ -49,13 +49,22 @@
 - ✅ **Database backups** — Daily cron at 2am, 30-day retention, tested successfully
 - ✅ **Prisma connection pool** — Added `connection_limit=5&pool_timeout=20` to DATABASE_URL
 
-#### Monitoring
+#### Monitoring & Observability
 - ✅ **Health check endpoint** — `/api/ping` (unauthenticated) returns DB status, uptime, timestamp
 - ✅ **CI/CD template** — Created `.github/workflows/deploy.yml` (local only, needs workflow scope token)
+- ✅ **Security verified** — Confirmed NOT vulnerable to CVE-2025-66478/CVE-2025-55182 (CVSS 10.0 RCE)
+
+#### Performance
+- ✅ **React Compiler** — Enabled `reactCompiler: true` with babel-plugin-react-compiler for automatic memoization
+- ✅ **Slow query logging** — Prisma middleware logs queries >1s to catch performance issues
+- ✅ **Caddy access logging** — JSON format to `/var/log/caddy/access.log` with 50MB rotation, 30-day retention
 
 #### Accessibility
 - ✅ **Login form** — Added `autocomplete` and `aria-required` attributes
-- ✅ **Focus styles** — Verified Tailwind focus utilities on all interactive elements
+- ✅ **Focus rings** — Added `focus-visible` outline styles for keyboard navigation
+- ✅ **Reduced motion** — Added `prefers-reduced-motion` media query
+- ✅ **Page titles** — Added unique `<title>` metadata to all 6 dashboard pages
+- ✅ **Service worker** — Bumped cache version to v2 to clear stale cache
 
 ---
 
