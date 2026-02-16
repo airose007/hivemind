@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // bcrypt hashed
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  icon        String?  // emoji
+  status      String   @default("active") // active, paused, dissolved
+  isCore      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  agents      Agent[]
+  tasks       Task[]
+}
+
+model Agent {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  role            String   // manager, worker, router, monitor
+  departmentId    String?
+  model           String   @default("sonnet") // opus, sonnet, haiku
+  status          String   @default("idle") // idle, working, error, offline
+  healthScore     Int      @default(100) // 0-100
+  sessionKey      String?
+  lastHealthCheck DateTime?
+  lastActivity    DateTime?
+  currentTaskId   String?
+  config          Json     @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  department      Department? @relation(fields: [departmentId], references: [id])
+  tasks           Task[]     @relation("assignedAgent")
+  createdTasks    Task[]     @relation("createdByAgent")
+  events          AgentEvent[]
+  sentMessages    Message[]  @relation("fromAgent")
+  receivedMessages Message[] @relation("toAgent")
+  healthChecks    HealthCheck[]
+  auditLogs       AuditLog[]
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model Task {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  status        String   @default("queued") // queued, assigned, running, completed, failed, canceled
+  priority      String   @default("normal") // critical, high, normal, low, background
+  departmentId  String?
+  assignedToId  String?
+  createdById   String?
+  parentTaskId  String?
+  payload       Json     @default("{}")
+  result        Json?
+  errorMessage  String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  department    Department? @relation(fields: [departmentId], references: [id])
+  assignedTo    Agent?      @relation("assignedAgent", fields: [assignedToId], references: [id])
+  createdBy     Agent?      @relation("createdByAgent", fields: [createdById], references: [id])
+  parentTask    Task?       @relation("subtasks", fields: [parentTaskId], references: [id])
+  subtasks      Task[]      @relation("subtasks")
+  events        TaskEvent[]
+
+  @@index([status])
+  @@index([departmentId])
+  @@index([assignedToId])
+}
+
+model TaskEvent {
+  id        String   @id @default(cuid())
+  taskId    String
+  type      String   // created, assigned, started, progress, completed, failed, canceled
+  message   String
+  meta      Json?
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  @@index([taskId])
+}
+
+model AgentEvent {
+  id        String   @id @default(cuid())
+  agentId   String
+  type      String   // started, completed_task, error, health_warning, model_switch
+  message   String
+  meta      Json?
+  createdAt DateTime @default(now())
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  @@index([agentId])
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  fromAgentId   String?
+  toAgentId     String?
+  toDepartment  String?
+  content       String
+  type          String   @default("info") // info, request, response, alert, escalation
+  read          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  fromAgent     Agent?   @relation("fromAgent", fields: [fromAgentId], references: [id])
+  toAgent       Agent?   @relation("toAgent", fields: [toAgentId], references: [id])
+  @@index([fromAgentId])
+  @@index([toAgentId])
+}
+
+model HealthCheck {
+  id        String   @id @default(cuid())
+  agentId   String
+  score     Int      // 0-100
+  issues    Json?    // array of issue strings
+  metrics   Json?    // contextUsage, responseTime, errorRate, etc.
+  createdAt DateTime @default(now())
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  @@index([agentId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  agentId   String?
+  userId    String?
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+  agent     Agent?   @relation(fields: [agentId], references: [id])
+  @@index([agentId])
+  @@index([createdAt])
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
